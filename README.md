@@ -8,27 +8,34 @@ and edit MIDI clips and notes, change tempo/time signature, manage tracks, drive
 playback, and fire clips/scenes.
 
 Under the hood it talks to Live through [`ableton-js`](https://github.com/leolabs/ableton-js),
-which exposes the Live API to Node via a Max for Live device. The AI doesn't write
-`ableton-js` code directly — it calls the CLI in this folder (`bin/ableton.mjs`),
-and every command prints JSON that the model can parse.
+which exposes the Live API to Node via a **MIDI Remote Script** (a Live Control
+Surface). The AI doesn't write `ableton-js` code directly — it calls the CLI in
+this folder (`bin/ableton.mjs`), and every command prints JSON that the model can
+parse.
 
 ## Install
 
-### 1. Ableton side: install the M4L device
-
-1. You need Ableton Live **Suite**, or Live with **Max for Live** installed.
-2. Download `AbletonJS.amxd` (a MIDI device) from the
-   [ableton-js releases](https://github.com/leolabs/ableton-js).
-3. Drop the `.amxd` onto **any track** in Live (leave it there — it's the
-   communication channel).
-4. Keep Live running.
-
-### 2. Skill side: install dependencies
+### 1. Skill side: install dependencies
 
 ```bash
 cd ableton-control
-npm install                    # installs ableton-js
-node bin/ableton.mjs status    # smoke test: should print tempo / track count
+npm install                    # installs ableton-js (this also brings the Remote Script)
+```
+
+### 2. Ableton side: install the AbletonJS MIDI Remote Script
+
+`ableton-js` talks to Live through a **MIDI Remote Script** (a Control Surface),
+**not** a Max for Live device — so you don't need Live Suite or Max for Live.
+
+1. Copy `node_modules/ableton-js/midi-script` into Live's Remote Scripts folder
+   and rename the copy to `AbletonJS`, so you end up with:
+   `~/Music/Ableton/User Library/Remote Scripts/AbletonJS`
+2. In Live, go to **Settings → Link, Tempo & MIDI → Control Surface** and select
+   **AbletonJS** in a free slot. (Restart Live if it was already running.)
+3. Keep Live running, then smoke-test the connection:
+
+```bash
+node bin/ableton.mjs status    # should print tempo / track count
 ```
 
 ### 3. Register it as a Claude Code skill
@@ -73,7 +80,7 @@ node bin/ableton.mjs play
 
 ## Key ideas when sharing this technique
 
-- **Channel**: CLI ↔ M4L device ↔ Live API. It's local UDP — nothing goes online.
+- **Channel**: CLI ↔ AbletonJS Remote Script ↔ Live API. It's local UDP — nothing goes online.
 - **Stateless**: each command connects, runs, and disconnects — a natural fit for
   an AI issuing one command at a time.
 - **Read-back verification**: after `write-clip`, read it back with `notes` so the

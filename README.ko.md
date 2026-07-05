@@ -4,23 +4,28 @@
 
 **실행 중인** Ableton Live 세트를 AI가 직접 읽고 쓸 수 있게 해주는 독립형 [Claude Code](https://claude.com/claude-code) skill입니다. 곡/트랙/클립 상태 읽기, MIDI 클립과 노트 생성·편집, 템포·박자표 변경, 트랙 관리, 재생 제어, 클립/씬 실행까지 지원합니다.
 
-내부적으로는 [`ableton-js`](https://github.com/leolabs/ableton-js)를 통해 Live와 통신합니다. `ableton-js`는 Max for Live 디바이스를 이용해 Live API를 Node로 노출합니다. AI가 `ableton-js` 코드를 직접 작성하지 않고, 이 폴더의 CLI(`bin/ableton.mjs`)를 호출하며, 모든 명령은 모델이 파싱하기 쉬운 JSON을 출력합니다.
+내부적으로는 [`ableton-js`](https://github.com/leolabs/ableton-js)를 통해 Live와 통신합니다. `ableton-js`는 **MIDI Remote Script(컨트롤 서피스)**를 이용해 Live API를 Node로 노출합니다. AI가 `ableton-js` 코드를 직접 작성하지 않고, 이 폴더의 CLI(`bin/ableton.mjs`)를 호출하며, 모든 명령은 모델이 파싱하기 쉬운 JSON을 출력합니다.
 
 ## 설치
 
-### 1. Ableton 쪽: M4L 디바이스 설치
-
-1. Ableton Live **Suite** 버전이거나, **Max for Live**가 설치된 Live가 필요합니다.
-2. [ableton-js releases](https://github.com/leolabs/ableton-js)에서 `AbletonJS.amxd`(MIDI 디바이스)를 내려받습니다.
-3. `.amxd`를 Live의 **아무 트랙에나** 드래그해 올려둡니다(그대로 두세요 — 통신 채널 역할을 합니다).
-4. Live를 실행 상태로 유지합니다.
-
-### 2. Skill 쪽: 의존성 설치
+### 1. Skill 쪽: 의존성 설치
 
 ```bash
 cd ableton-control
-npm install                    # ableton-js 설치
-node bin/ableton.mjs status    # 스모크 테스트: 템포 / 트랙 수가 출력되어야 함
+npm install                    # ableton-js 설치 (Remote Script도 함께 node_modules에 설치됨)
+```
+
+### 2. Ableton 쪽: AbletonJS MIDI Remote Script 설치
+
+`ableton-js`는 **MIDI Remote Script(컨트롤 서피스)**로 Live와 통신하며, Max for Live 디바이스가 **아닙니다** — 따라서 Live Suite나 Max for Live가 필요하지 않습니다.
+
+1. `node_modules/ableton-js/midi-script`를 Live의 Remote Scripts 폴더로 복사하고 이름을 `AbletonJS`로 바꿉니다. 최종 경로:
+   `~/Music/Ableton/User Library/Remote Scripts/AbletonJS`
+2. Live에서 **Settings → Link, Tempo & MIDI → Control Surface**로 가서 빈 슬롯에 **AbletonJS**를 선택합니다. (Live가 이미 실행 중이었다면 재시작하세요.)
+3. Live를 실행 상태로 유지한 뒤 연결을 스모크 테스트합니다:
+
+```bash
+node bin/ableton.mjs status    # 템포 / 트랙 수가 출력되어야 함
 ```
 
 ### 3. Claude Code skill로 등록
@@ -61,7 +66,7 @@ node bin/ableton.mjs play
 
 ## 이 기술을 공유할 때의 핵심 포인트
 
-- **통신 채널**: CLI ↔ M4L 디바이스 ↔ Live API. 로컬 UDP이며 인터넷을 거치지 않습니다.
+- **통신 채널**: CLI ↔ AbletonJS Remote Script ↔ Live API. 로컬 UDP이며 인터넷을 거치지 않습니다.
 - **무상태(stateless)**: 각 명령이 연결 → 실행 → 종료로 완결됩니다. AI가 명령을 한 번에 하나씩 내리는 방식과 잘 맞습니다.
 - **되읽기 검증**: `write-clip` 후 `notes`로 다시 읽어 AI가 결과를 스스로 확인합니다. 이 루프가 AI로 DAW를 안정적으로 다루는 핵심입니다.
 - **파괴적 작업은 확인 필수**: `delete-*`, `--overwrite`, `clear-notes`는 되돌릴 수 없습니다. skill에는 AI가 먼저 사용자에게 확인하도록 명시되어 있습니다.

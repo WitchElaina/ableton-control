@@ -4,23 +4,28 @@
 
 一个自包含的 [Claude Code](https://claude.com/claude-code) skill,让 AI 能直接读写一个**正在运行的** Ableton Live 工程:读取歌曲/轨道/clip 状态,创建和编辑 MIDI clip 与音符,改 tempo/拍号,管理轨道,控制播放、触发 clip/scene。
 
-底层通过 [`ableton-js`](https://github.com/leolabs/ableton-js) 与 Live 通信 —— 它借助一个 Max for Live 设备把 Live API 暴露给 Node。AI 不直接写 `ableton-js` 代码,而是调用本目录的 CLI(`bin/ableton.mjs`),每条命令输出 JSON,便于模型解析。
+底层通过 [`ableton-js`](https://github.com/leolabs/ableton-js) 与 Live 通信 —— 它借助一个 **MIDI Remote Script(控制表面脚本)**把 Live API 暴露给 Node。AI 不直接写 `ableton-js` 代码,而是调用本目录的 CLI(`bin/ableton.mjs`),每条命令输出 JSON,便于模型解析。
 
 ## 安装
 
-### 1. Ableton 侧:装 M4L 设备
-
-1. Ableton Live 需为 **Suite** 版,或单独装了 **Max for Live**。
-2. 从 [ableton-js releases](https://github.com/leolabs/ableton-js) 下载 `AbletonJS.amxd`(一个 MIDI 设备)。
-3. 把 `.amxd` 拖到 Live 里**任意一条轨道**上(留在那儿即可,它是通信通道)。
-4. 保持 Live 运行。
-
-### 2. 本 skill 侧:装依赖
+### 1. 本 skill 侧:装依赖
 
 ```bash
 cd ableton-control
-npm install                    # 装 ableton-js
-node bin/ableton.mjs status    # 冒烟测试:应打印 tempo / 轨道数
+npm install                    # 装 ableton-js(Remote Script 也随它一起装进 node_modules)
+```
+
+### 2. Ableton 侧:装 AbletonJS MIDI Remote Script
+
+`ableton-js` 通过 **MIDI Remote Script(控制表面)**与 Live 通信,**不是** Max for Live 设备 —— 所以你不需要 Suite 版,也不需要 Max for Live。
+
+1. 把 `node_modules/ableton-js/midi-script` 复制到 Live 的 Remote Scripts 目录并重命名为 `AbletonJS`,最终得到:
+   `~/Music/Ableton/User Library/Remote Scripts/AbletonJS`
+2. 在 Live 里进入 **设置 → Link, Tempo & MIDI → Control Surface**,在一个空槽里选 **AbletonJS**。(如果 Live 已在运行,重启一下。)
+3. 保持 Live 运行,然后冒烟测试连接:
+
+```bash
+node bin/ableton.mjs status    # 应打印 tempo / 轨道数
 ```
 
 ### 3. 注册为 Claude Code skill
@@ -61,7 +66,7 @@ node bin/ableton.mjs play
 
 ## 分享这套技术时的几个要点
 
-- **通道**:CLI ↔ M4L 设备 ↔ Live API,是本地 UDP,不联网。
+- **通道**:CLI ↔ AbletonJS Remote Script ↔ Live API,是本地 UDP,不联网。
 - **无状态**:每条命令连接一次、执行、断开,天然适合被 AI 一条条调用。
 - **可回读验证**:写完 `write-clip` 后用 `notes` 读回,让 AI 自我核对结果 —— 这是让 AI 可靠操作 DAW 的关键闭环。
 - **破坏性操作要确认**:`delete-*`、`--overwrite`、`clear-notes` 不可逆,skill 里已要求 AI 先跟用户确认。
