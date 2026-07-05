@@ -1,0 +1,21 @@
+{
+  "name": "ableton-control-skill",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Claude Code skill: drive a running Ableton Live set via ableton-js (read + write MIDI clips, transport, tracks).",
+  "type": "module",
+  "bin": {
+    "ableton": "./bin/ableton.mjs"
+  },
+  "scripts": {
+    "help": "node bin/ableton.mjs help",
+    "status": "node bin/ableton.mjs status"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "ableton-js": "^4.0.3"
+  },
+  "license": "MIT"
+}
