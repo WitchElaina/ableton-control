@@ -23,8 +23,9 @@ Don't worry — you don't need to be a developer. Just a few steps:
    into Live's Remote Scripts folder (`~/Music/Ableton/User Library/Remote Scripts`)
    and rename the copy to `AbletonJS`. Then in Live open **Settings → Link, Tempo &
    MIDI → Control Surface** and pick **AbletonJS** in a free slot. Keep Live running.
-4. **Hand it to your AI** — copy this whole folder into `~/.claude/skills/`, then just
-   tell Claude Code what you want (*"set the tempo to 128"*) and it does the rest.
+4. **Hand it to your AI** — open this folder with Claude Code and ask it to read
+   `SKILL.md`. From then on just tell it what you want (*"set the tempo to 128"*) and
+   it does the rest.
 
 To check the connection, run `node bin/ableton.mjs status` — it should print your
 current tempo and track count.

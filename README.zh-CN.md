@@ -20,8 +20,8 @@
    Remote Scripts 目录(`~/Music/Ableton/User Library/Remote Scripts`),并把副本重命名为
    `AbletonJS`。然后在 Live 里进入 **设置 → Link, Tempo & MIDI → Control Surface**,在一个
    空槽里选 **AbletonJS**。保持 Live 运行。
-4. **交给你的 AI** —— 把整个文件夹复制到 `~/.claude/skills/`,之后直接跟 Claude Code 说你想
-   干嘛(「把 tempo 调到 128」),剩下的它来做。
+4. **交给你的 AI** —— 用 Claude Code 打开这个文件夹,让它读一下 `SKILL.md`。之后直接跟它
+   说你想干嘛(「把 tempo 调到 128」),剩下的它来做。
 
 想确认是否连通,运行 `node bin/ableton.mjs status` —— 它应该会打印出当前的 tempo 和轨道数。
 
